@@ -9,10 +9,26 @@
 
   <ItemGroup>
     <None Remove="CalorieCounting.txt" />
+    <None Remove="CampCleanup.txt" />
+    <None Remove="Day5.txt" />
+    <None Remove="RockPaperScissors.txt" />
+    <None Remove="RucksackReorganization.txt" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="CalorieCounting.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CampCleanup.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day5.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RockPaperScissors.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RucksackReorganization.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
