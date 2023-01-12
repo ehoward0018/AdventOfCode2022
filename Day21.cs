@@ -9,59 +9,54 @@ namespace AdventOfCode2022
 {
     public class Day21
     {
-        public static event Action<JobMonkeyValue> NewCodeFound = null;
-
-        public static Dictionary<string, JobMonkeyValue> AllCodeValues = new();
-
-        public static Queue<JobMonkeyValue> NewCodesFound = new();
+        public static Dictionary<string, JobMonkey> AllMonkeys = new();
 
         public static bool RootFound = false;
         public static long RootFinalValue = 0;
+        public static int MonkeysEliminated = 0;
 
-        static void Main()
-        {
-            var path2 = Path.Combine(Directory.GetCurrentDirectory(), "Day21.txt");
-            string[] inputs = File.ReadAllLines(path2);
-            List<JobMonkey> monkeys = new();
+        //static void Main()
+        //{
+        //    var path2 = Path.Combine(Directory.GetCurrentDirectory(), "Day21.txt");
+        //    string[] inputs = File.ReadAllLines(path2);
             
-            for(int i = 0; i < inputs.Length; i++)
-            {
-                while(NewCodesFound.Count > 0)
-                {
-                    NewCodeFound.Invoke(NewCodesFound.Dequeue());
-                }
-                if (RootFound) break;
+        //    for(int i = 0; i < inputs.Length; i++)
+        //    {
+        //        string[] line = inputs[i].Split(": ");
+        //        if (line[1].Contains('*') || line[1].Contains('/') || line[1].Contains('-') || line[1].Contains('+'))
+        //        {
+        //            string[] secondLine = line[1].Split(' ');
+        //            JobMonkey monkey = new(line[0], secondLine[0], secondLine[2], secondLine[1]);
+        //            AllMonkeys.Add(monkey.Code, monkey);
+        //        }
+        //        else
+        //        {
+        //            JobMonkey jobMonkeyValue = new(line[0], long.Parse(line[1]));
+        //            AllMonkeys.Add(jobMonkeyValue.Code, jobMonkeyValue);
+        //            MonkeysEliminated++;
+        //        }
+        //    }
 
-                string[] line = inputs[i].Split(": ");
-                if (line[1].Contains('*') || line[1].Contains('/') || line[1].Contains('-') || line[1].Contains('+'))
-                {
-                    string[] secondLine = line[1].Split(' ');
-                    monkeys.Add(new(line[0], secondLine[0], secondLine[2], secondLine[1]));
-                }
-                else
-                {
-                    JobMonkeyValue jobMonkeyValue = new()
-                    {
-                        Code = line[0],
-                        CodeValue = long.Parse(line[1])
-                    };
+        //    foreach (JobMonkey jobMonkey in AllMonkeys.Values)
+        //        jobMonkey.EncountersHumn();
 
-                    NewCodesFound.Enqueue(jobMonkeyValue);
-                    AllCodeValues.Add(jobMonkeyValue.Code, jobMonkeyValue);
-                }
-            }
-            while (NewCodesFound.Count > 0)
-            {
-                if (NewCodeFound is null) break;
-                NewCodeFound.Invoke(NewCodesFound.Dequeue());
-            }
-        }
-    }
+        //    string first = AllMonkeys["root"].FirstOperator;
+        //    string second = AllMonkeys["root"].SecondOperator;
 
-    public class JobMonkeyValue
-    {
-        public string Code { get; set; } = "";
-        public long CodeValue { get; set; }
+        //    for (long i = 3353687000000; i < 120000000000000; i++)
+        //    {
+        //        AllMonkeys["humn"].CodeValue = i;
+
+        //        if (AllMonkeys[AllMonkeys["root"].FirstOperator].GetValue() == AllMonkeys[AllMonkeys["root"].SecondOperator].GetValue())
+        //        {
+        //            RootFinalValue = i;
+        //            break;
+        //        }
+        //    }
+
+        //    Debug.WriteLine(MonkeysEliminated);
+        //    Debug.WriteLine(RootFinalValue);
+        //}
     }
 
     public class JobMonkey
@@ -70,7 +65,15 @@ namespace AdventOfCode2022
         public string FirstOperator { get; set; } = "";
         public string SecondOperator { get; set; } = "";
         public string Operation { get; set; } = "";
+        public bool ValueFound = false;
         public long CodeValue { get; set; } = 0;
+
+        public JobMonkey(string code, long value)
+        {
+            Code = code;
+            CodeValue = value;
+            ValueFound = true;
+        }
 
         public JobMonkey(string code, string firstOp, string secondOp, string op)
         {
@@ -78,58 +81,40 @@ namespace AdventOfCode2022
             FirstOperator = firstOp;
             SecondOperator = secondOp;
             Operation = op;
-
-            if (!CheckForAnswer())
-                Day21.NewCodeFound += ListenForValue;
-
         }
 
-        private void ListenForValue(JobMonkeyValue value)
+        public long GetValue()
         {
-            if (value.Code != FirstOperator && value.Code != SecondOperator) return;
+            if (ValueFound) return CodeValue;
 
-            if (CheckForAnswer())
-                Day21.NewCodeFound -= ListenForValue;
-         
-        }
-
-        private bool CheckForAnswer()
-        {
-            if (Day21.AllCodeValues.TryGetValue(FirstOperator, out JobMonkeyValue firstValue)
-               && Day21.AllCodeValues.TryGetValue(SecondOperator, out JobMonkeyValue secondValue))
+            switch (Operation)
             {
-                switch (Operation)
-                {
-                    case "+":
-                        CodeValue = firstValue.CodeValue + secondValue.CodeValue; break;
-                    case "-":
-                        CodeValue = firstValue.CodeValue - secondValue.CodeValue; break;
-                    case "*":
-                        CodeValue = firstValue.CodeValue * secondValue.CodeValue; break;
-                    case "/":
-                        CodeValue = firstValue.CodeValue / secondValue.CodeValue; break;
-                }
-
-                if (Code == "root")
-                {
-                    Day21.RootFinalValue = CodeValue;
-                    Day21.RootFound = true;
-                }
-
-                Day21.NewCodesFound.Enqueue(new JobMonkeyValue()
-                {
-                    Code = Code,
-                    CodeValue = CodeValue,
-                });
-
-                Day21.AllCodeValues.Add(Code, new JobMonkeyValue()
-                {
-                    Code = Code,
-                    CodeValue = CodeValue,
-                });
-                return true;
+                case "+":
+                    CodeValue = Day21.AllMonkeys[FirstOperator].GetValue() + Day21.AllMonkeys[SecondOperator].GetValue(); break;
+                case "-":
+                    CodeValue = Day21.AllMonkeys[FirstOperator].GetValue() - Day21.AllMonkeys[SecondOperator].GetValue(); break;
+                case "*":
+                    CodeValue = Day21.AllMonkeys[FirstOperator].GetValue() * Day21.AllMonkeys[SecondOperator].GetValue(); break;
+                case "/":
+                    CodeValue = Day21.AllMonkeys[FirstOperator].GetValue() / Day21.AllMonkeys[SecondOperator].GetValue(); break;
             }
-            return false;
+            return CodeValue;
+        }
+
+        public bool EncountersHumn()
+        {
+            if (Code == "humn" || FirstOperator == "humn" || SecondOperator == "humn") return true;
+            if (ValueFound) return false;
+
+            if (!Day21.AllMonkeys[FirstOperator].EncountersHumn() && !Day21.AllMonkeys[SecondOperator].EncountersHumn())
+            {
+                GetValue();
+                ValueFound = true;
+                Day21.MonkeysEliminated++;
+                return false;
+            }
+
+            return true;          
         }
     }
 }
